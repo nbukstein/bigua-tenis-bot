@@ -4,14 +4,33 @@
   "apertura": "21:00",
   "ci_invitado_default": "",
   "canchas_preferidas": [],
-  "notificar_a": ["elbrayan22@hotmail.com"],
-
+  "notificar_a": [
+    "elbrayan22@hotmail.com"
+  ],
   "_comentario_default_semanal": "Dia de la semana del dia que se JUEGA. 0=lunes ... 6=domingo. 'horas' en orden de preferencia.",
   "default_semanal": {
-    "1": { "horas": [19, 20, 18] },
-    "3": { "horas": [19, 20, 18] }
+    "1": {
+      "horas": [
+        19,
+        20,
+        18
+      ]
+    },
+    "3": {
+      "horas": [
+        19,
+        20,
+        18
+      ]
+    }
   },
-
   "_comentario_override": "Pisa al default_semanal para una fecha puntual (la fecha en que se JUEGA, formato YYYY-MM-DD). Se borra solo cuando pasa.",
-  "override": {}
+  "override": {
+    "2026-08-22": {
+      "horas": [
+        8
+      ],
+      "ci_invitado": "32873613"
+    }
+  }
 }
