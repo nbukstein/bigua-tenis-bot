@@ -1,0 +1,150 @@
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --borde: #dfe3e8;
+  --texto: #16202e;
+  --suave: #5f6b7a;
+  --marca: #1d4ed8;
+  --marca-txt: #ffffff;
+  --ok: #0f7b52;
+  --ok-bg: #e6f4ee;
+  --off: #8a94a1;
+  --alerta: #b42318;
+  --alerta-bg: #fdeceb;
+  --radio: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1420;
+    --panel: #17202f;
+    --borde: #2a3547;
+    --texto: #e8edf5;
+    --suave: #98a5b6;
+    --marca: #4a7dff;
+    --ok: #4ade9a;
+    --ok-bg: #14342a;
+    --off: #64708087;
+    --alerta: #ff8a80;
+    --alerta-bg: #3a1c1a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--texto);
+  font: 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+
+.salir {
+  background: none; border: 0; color: var(--suave);
+  font-size: 13px; cursor: pointer; padding: 4px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.card h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--suave);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.estado { font-size: 19px; font-weight: 600; }
+.estado.on  { color: var(--ok); }
+.estado.off { color: var(--off); }
+
+.sub { font-size: 13px; color: var(--suave); margin-top: 4px; }
+
+/* interruptor */
+.sw {
+  position: relative; width: 56px; height: 32px; flex: none;
+  border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--off); transition: background .18s;
+}
+.sw[data-on="true"] { background: var(--ok); }
+.sw::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; transition: transform .18s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.sw[data-on="true"]::after { transform: translateX(24px); }
+
+/* chips de horas */
+.horas { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-width: 52px; padding: 9px 10px;
+  border: 1px solid var(--borde); border-radius: 10px;
+  background: transparent; color: var(--texto);
+  font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: all .12s;
+}
+.chip:hover { border-color: var(--marca); }
+.chip[data-sel="true"] {
+  background: var(--marca); border-color: var(--marca); color: var(--marca-txt); font-weight: 600;
+}
+.chip .orden {
+  display: inline-block; font-size: 10px; opacity: .85; margin-left: 4px; vertical-align: top;
+}
+
+input[type="text"], input[type="password"], input[type="date"] {
+  width: 100%; padding: 11px 12px;
+  border: 1px solid var(--borde); border-radius: 10px;
+  background: var(--bg); color: var(--texto); font-size: 16px;
+}
+
+button.accion {
+  width: 100%; padding: 13px;
+  border: 0; border-radius: 12px;
+  background: var(--marca); color: var(--marca-txt);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+button.accion:disabled { opacity: .5; cursor: default; }
+button.accion.fantasma {
+  background: transparent; color: var(--marca);
+  border: 1px solid var(--borde); font-weight: 500;
+}
+
+.aviso { padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; }
+.aviso.ok   { background: var(--ok-bg); color: var(--ok); }
+.aviso.mal  { background: var(--alerta-bg); color: var(--alerta); }
+
+.corrida {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 9px 0; border-top: 1px solid var(--borde); font-size: 14px;
+}
+.corrida:first-of-type { border-top: 0; }
+.corrida a { color: var(--suave); text-decoration: none; font-size: 13px; }
+.punto { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+
+.login { max-width: 340px; margin: 18vh auto; }

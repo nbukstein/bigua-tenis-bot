@@ -1,0 +1,78 @@
+name: Reservar cancha de tenis
+
+on:
+  schedule:
+    # 23:25 UTC = 20:25 en Montevideo (UTC-3 todo el ano, Uruguay no tiene horario de verano).
+    # Arrancamos 35 min antes de la apertura porque el cron de GitHub Actions
+    # se atrasa entre 5 y 20 minutos. El script duerme hasta las 21:00:00 exactas.
+    - cron: "25 23 * * *"
+
+  workflow_dispatch:
+    inputs:
+      fecha:
+        description: "Fecha a jugar (YYYY-MM-DD). Vacio = manana."
+        required: false
+        type: string
+      ahora:
+        description: "Intentar ya, sin esperar a las 21:00"
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: "Buscar el horario pero NO reservar"
+        required: false
+        type: boolean
+        default: false
+      capturar:
+        description: "Guardar screenshots y HTML del flujo"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: reserva-tenis
+  cancel-in-progress: false
+
+jobs:
+  reservar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Reservar
+        env:
+          BIGUA_DOCUMENTO: ${{ secrets.BIGUA_DOCUMENTO }}
+          BIGUA_PASSWORD: ${{ secrets.BIGUA_PASSWORD }}
+          BIGUA_TIPO_DOC: ${{ vars.BIGUA_TIPO_DOC || '1' }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: |
+          python reservar.py \
+            ${{ inputs.fecha && format('--fecha {0}', inputs.fecha) || '' }} \
+            ${{ inputs.ahora && '--ahora' || '' }} \
+            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            ${{ inputs.capturar && '--capturar' || '' }}
+
+      - name: Guardar artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefactos-${{ github.run_id }}
+          path: artefactos/
+          if-no-files-found: ignore
+          retention-days: 14
