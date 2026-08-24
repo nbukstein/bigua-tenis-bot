@@ -26,13 +26,13 @@
   },
   "_comentario_override": "Pisa al default_semanal para una fecha puntual (la fecha en que se JUEGA, formato YYYY-MM-DD). Se borra solo cuando pasa.",
   "override": {
-    "2026-08-22": {
+    "2026-08-24": {
       "horas": [
         8
       ],
       "ci_invitado": "32873613"
     },
-    "2026-08-24": {
+    "2026-08-26": {
       "horas": [
         8
       ],
