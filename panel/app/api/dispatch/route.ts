@@ -9,11 +9,12 @@ export async function POST(req: Request) {
 
   const { fecha, ahora, dry_run } = await req.json().catch(() => ({}));
   try {
+    // Solo mandamos los flags que estan en true. Un "false" como string es
+    // truthy en las expresiones de GitHub y terminaria activando el flag.
     await dispararWorkflow({
       ...(fecha ? { fecha } : {}),
-      ahora: ahora ? "true" : "false",
-      dry_run: dry_run ? "true" : "false",
-      capturar: "false",
+      ...(ahora ? { ahora: "true" } : {}),
+      ...(dry_run ? { dry_run: "true" } : {}),
     });
     return NextResponse.json({ ok: true });
   } catch (e: any) {

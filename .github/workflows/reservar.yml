@@ -51,6 +51,26 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps chromium
 
+      - name: Armar argumentos
+        id: args
+        env:
+          # Se comparan como texto contra 'true'. Ojo: en las expresiones de GitHub
+          # cualquier string no vacia es truthy, "false" incluida — por eso NO se
+          # puede usar `${{ inputs.x && '--flag' || '' }}` con inputs que llegan
+          # por API como strings.
+          IN_FECHA: ${{ github.event_name == 'workflow_dispatch' && inputs.fecha || '' }}
+          IN_AHORA: ${{ github.event_name == 'workflow_dispatch' && inputs.ahora || '' }}
+          IN_DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || '' }}
+          IN_CAP: ${{ github.event_name == 'workflow_dispatch' && inputs.capturar || '' }}
+        run: |
+          args=""
+          [ -n "$IN_FECHA" ]        && args="$args --fecha $IN_FECHA"
+          [ "$IN_AHORA" = "true" ]  && args="$args --ahora"
+          [ "$IN_DRY"   = "true" ]  && args="$args --dry-run"
+          [ "$IN_CAP"   = "true" ]  && args="$args --capturar"
+          echo "valor:$args"
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
       - name: Reservar
         env:
           BIGUA_DOCUMENTO: ${{ secrets.BIGUA_DOCUMENTO }}
@@ -61,12 +81,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_FROM: ${{ secrets.SMTP_FROM }}
-        run: |
-          python reservar.py \
-            ${{ inputs.fecha && format('--fecha {0}', inputs.fecha) || '' }} \
-            ${{ inputs.ahora && '--ahora' || '' }} \
-            ${{ inputs.dry_run && '--dry-run' || '' }} \
-            ${{ inputs.capturar && '--capturar' || '' }}
+        run: python reservar.py ${{ steps.args.outputs.args }}
 
       - name: Guardar artefactos
         if: always()

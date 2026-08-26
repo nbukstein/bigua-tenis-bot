@@ -115,7 +115,7 @@ def login(page: Page, documento: str, password: str, tipo_doc: str = "1") -> Non
     page.select_option("#vUSUARIODOCUMENTOTIPO", tipo_doc)
     page.fill("#vUSUARIODOCUMENTONROSTR", documento)
     page.fill("#vUSERPASSWORD", password)
-    page.click("#BTNENTER")
+    page.click("input[type=submit]")
 
     # El login redirige a wpclases. Si seguimos en ingresosocios, fallo.
     try:
@@ -258,15 +258,50 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
     return "modal-sin-boton"
 
 
-def esperar_apertura(cuando: datetime, tz: ZoneInfo) -> None:
-    """Duerme grueso y despues afina, para clavar el segundo exacto."""
+def sesion_activa(page: Page) -> bool:
+    """Si el sitio nos rebota al login, la sesion murio."""
+    return "ingresosocios" not in (page.url or "")
+
+
+def asegurar_sesion(page: Page, documento: str, password: str, tipo_doc: str) -> bool:
+    """
+    Carga la pagina de tenis y, si nos encontramos deslogueados, vuelve a entrar.
+    Devuelve True si hubo que re-loguearse.
+    """
+    page.goto(URL_TENIS, wait_until="domcontentloaded")
+    if sesion_activa(page):
+        return False
+    log("Sesion caida — re-login")
+    login(page, documento, password, tipo_doc)
+    page.goto(URL_TENIS, wait_until="domcontentloaded")
+    return True
+
+
+def esperar_apertura(cuando: datetime, tz: ZoneInfo, latido=None, cada: float = 60) -> None:
+    """
+    Duerme grueso y despues afina, para clavar el segundo exacto.
+
+    `latido` se llama cada `cada` segundos durante la espera. Lo usamos para
+    mantener viva la sesion del sitio, que se cae sola por inactividad.
+    """
+    proximo_latido = time.monotonic()
     while True:
         falta = (cuando - datetime.now(tz)).total_seconds()
         if falta <= 0:
             return
+
+        if latido and falta > 8 and time.monotonic() >= proximo_latido:
+            try:
+                latido()
+            except Exception as exc:
+                log(f"El latido fallo (sigo igual): {exc}")
+            proximo_latido = time.monotonic() + cada
+            continue
+
         if falta > 120:
+            restante = proximo_latido - time.monotonic()
             log(f"Faltan {falta/60:.1f} min para la apertura…")
-            time.sleep(min(falta - 60, 300))
+            time.sleep(max(1.0, min(falta - 5, restante if latido else 300)))
         elif falta > 2:
             time.sleep(falta - 1.5)
         else:
@@ -339,6 +374,11 @@ def main() -> int:
         return 0
 
     log(f"Objetivo: {obj}")
+    log(
+        "MODO: INMEDIATO (--ahora), no espera la apertura"
+        if args.ahora
+        else f"MODO: espera hasta la apertura ({momento_apertura(cfg, fecha_juego):%H:%M:%S %Z})"
+    )
 
     documento = os.environ["BIGUA_DOCUMENTO"]
     password = os.environ["BIGUA_PASSWORD"]
@@ -357,17 +397,30 @@ def main() -> int:
         try:
             apertura = momento_apertura(cfg, fecha_juego) if not args.ahora else None
 
-            # Esperamos casi hasta la apertura ANTES de loguearnos, para que la
-            # sesion este fresca y no expire mientras hacemos tiempo.
-            if apertura:
-                log(f"Apertura prevista: {apertura.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-                esperar_apertura(apertura - timedelta(seconds=180), tz)
-
+            # Nos logueamos ya: si las credenciales estan mal queremos enterarnos
+            # ahora y no a las 21:00 con la ventana abierta.
             login(page, documento, password, tipo_doc)
 
             if apertura:
-                # Dejamos la pagina de tenis cargada para que el primer refresh vuele.
-                page.goto(URL_TENIS, wait_until="domcontentloaded")
+                log(f"Apertura prevista: {apertura.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+
+                # La sesion del sitio se cae sola por inactividad, asi que durante
+                # la espera le pegamos un toque cada 60 s. Si aun asi se cayo, el
+                # latido mismo vuelve a entrar.
+                def latido():
+                    if asegurar_sesion(page, documento, password, tipo_doc):
+                        log("Sesion recuperada por el latido")
+                    else:
+                        log("Latido: sesion viva")
+
+                # Paramos 15 s antes para dejar la sesion verificada y la pagina
+                # cargada. A las 21:00:00 no queremos gastar ni un request en eso.
+                esperar_apertura(apertura - timedelta(seconds=15), tz, latido=latido, cada=60)
+                if asegurar_sesion(page, documento, password, tipo_doc):
+                    log("Re-login sobre la hora")
+                else:
+                    log("Sesion verificada, esperando el segundo exacto")
+
                 esperar_apertura(apertura, tz)
                 log(">>> APERTURA <<<")
 
@@ -378,6 +431,10 @@ def main() -> int:
             while time.monotonic() < limite:
                 vuelta += 1
                 page.goto(URL_TENIS, wait_until="domcontentloaded")
+                if not sesion_activa(page):
+                    log("Nos deslogueo en pleno poll — reentrando")
+                    login(page, documento, password, tipo_doc)
+                    page.goto(URL_TENIS, wait_until="domcontentloaded")
                 slots = leer_slots(page)
                 if vuelta == 1 or slots:
                     log(f"vuelta {vuelta}: {len(slots)} slots — "
