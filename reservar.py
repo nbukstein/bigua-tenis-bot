@@ -115,7 +115,7 @@ def login(page: Page, documento: str, password: str, tipo_doc: str = "1") -> Non
     page.select_option("#vUSUARIODOCUMENTOTIPO", tipo_doc)
     page.fill("#vUSUARIODOCUMENTONROSTR", documento)
     page.fill("#vUSERPASSWORD", password)
-    page.click("input[type=submit]")
+    page.click("#BTNENTER")
 
     # El login redirige a wpclases. Si seguimos en ingresosocios, fallo.
     try:
