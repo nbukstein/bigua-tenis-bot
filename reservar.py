@@ -21,6 +21,7 @@ import json
 import os
 import re
 import smtplib
+import subprocess
 import sys
 import time
 import traceback
@@ -89,10 +90,35 @@ def marcar_reservado(fecha_juego: date) -> None:
     ESTADO.write_text(json.dumps({"ultima_reserva": fecha_juego.isoformat()}), encoding="utf-8")
 
 
+def desactivar(cfg: dict) -> None:
+    """El switch 'Activo' del panel es de un solo uso: cada activacion vale
+    para UN intento (la apertura de esa noche). Se consume aca, apenas
+    arranca el intento, para que si el usuario no vuelve a entrar al panel
+    la proxima apertura no reserve nada por default_semanal ni por inercia
+    del switch."""
+    cfg["activo"] = False
+    CONFIG.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    try:
+        subprocess.run(["git", "add", "config.json"], cwd=RAIZ, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "bot: auto-apagado tras el intento de esta noche"],
+            cwd=RAIZ, check=True,
+        )
+        subprocess.run(["git", "push"], cwd=RAIZ, check=True)
+        log("Bot desactivado y pusheado (activo=false)")
+    except subprocess.CalledProcessError as exc:
+        log(f"ADVERTENCIA: no se pudo commitear/pushear la desactivacion: {exc}")
+
+
 def resolver_objetivo(cfg: dict, fecha_juego: date) -> Objetivo | None:
-    """Devuelve el objetivo para la fecha dada, o None si no hay nada configurado."""
-    override = (cfg.get("override") or {}).get(fecha_juego.isoformat())
-    base = override or (cfg.get("default_semanal") or {}).get(str(fecha_juego.weekday()))
+    """Devuelve el objetivo para la fecha dada, o None si no hay nada configurado.
+
+    Solo mira 'override' (una activacion puntual para esa fecha, hecha a mano
+    en el panel). 'default_semanal' es apenas una sugerencia para prellenar el
+    formulario del panel — no dispara reservas por si solo, porque el bot es
+    de un solo uso por activacion (ver desactivar()).
+    """
+    base = (cfg.get("override") or {}).get(fecha_juego.isoformat())
 
     if not base:
         return None
@@ -379,6 +405,9 @@ def main() -> int:
         log("El bot esta DESACTIVADO en config.json. Nada que hacer.")
         resumen_actions("### Bot desactivado\nNo se intento ninguna reserva.")
         return 0
+
+    if not args.dry_run:
+        desactivar(cfg)
 
     fecha_juego = (
         date.fromisoformat(args.fecha) if args.fecha else (ahora.date() + timedelta(days=1))

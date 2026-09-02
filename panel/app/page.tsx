@@ -141,8 +141,8 @@ export default function Panel() {
             </div>
             <div className="sub">
               {activo
-                ? "Reserva sola todas las noches a las 21:00"
-                : "No va a reservar nada hasta que lo prendas"}
+                ? "Va a intentar reservar hoy a las 21:00. Es de un solo uso: despues del intento se apaga solo."
+                : "No va a reservar nada hasta que lo prendas para la proxima apertura"}
             </div>
           </div>
           <button
