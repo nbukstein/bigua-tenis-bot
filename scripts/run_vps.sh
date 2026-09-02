@@ -7,4 +7,4 @@ set -a
 source .env
 set +a
 
-exec .venv/bin/python reservar.py
+exec .venv/bin/python reservar.py "$@"
