@@ -1,12 +1,11 @@
 name: Reservar cancha de tenis
 
 on:
-  schedule:
-    # 23:25 UTC = 20:25 en Montevideo (UTC-3 todo el ano, Uruguay no tiene horario de verano).
-    # Arrancamos 35 min antes de la apertura porque el cron de GitHub Actions
-    # se atrasa entre 5 y 20 minutos. El script duerme hasta las 21:00:00 exactas.
-    - cron: "25 23 * * *"
-
+  # El disparo real de todos los dias es un cron en el VPS (ver DEPLOY_VPS.md),
+  # no el `schedule:` de GitHub Actions: su timing no tiene SLA y puede atrasarse
+  # mucho mas de lo esperado en horas pico (se observo hasta ~1h40), lo cual es
+  # fatal para una apertura de cupos donde otros socios compiten por el mismo
+  # horario. Este workflow queda solo para disparos manuales / dry-run.
   workflow_dispatch:
     inputs:
       fecha:
@@ -32,6 +31,9 @@ on:
 concurrency:
   group: reserva-tenis
   cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   reservar:
@@ -82,6 +84,17 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_FROM: ${{ secrets.SMTP_FROM }}
         run: python reservar.py ${{ steps.args.outputs.args }}
+
+      - name: Guardar estado (evita reservas duplicadas en disparos redundantes)
+        if: always()
+        run: |
+          if ! git diff --quiet -- estado.json; then
+            git config user.name  "bigua-bot"
+            git config user.email "bigua-bot@users.noreply.github.com"
+            git add estado.json
+            git commit -m "estado: reserva confirmada"
+            git push
+          fi
 
       - name: Guardar artefactos
         if: always()

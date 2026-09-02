@@ -35,6 +35,7 @@ from playwright.sync_api import sync_playwright, Page, TimeoutError as PWTimeout
 RAIZ = Path(__file__).parent
 CONFIG = RAIZ / "config.json"
 ARTEFACTOS = RAIZ / "artefactos"
+ESTADO = RAIZ / "estado.json"
 
 BASE = "https://bigua.uy"
 URL_LOGIN = f"{BASE}/com.biguasocios.ingresosocios"
@@ -70,6 +71,22 @@ class Objetivo:
 def cargar_config() -> dict:
     with CONFIG.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def ya_reservado(fecha_juego: date) -> bool:
+    """El cron puede disparar mas de una vez (colchon contra atrasos de GitHub
+    Actions). Este marker, commiteado al repo, evita reintentar/duplicar una
+    reserva ya confirmada para la misma fecha."""
+    if not ESTADO.exists():
+        return False
+    try:
+        return json.loads(ESTADO.read_text(encoding="utf-8")).get("ultima_reserva") == fecha_juego.isoformat()
+    except (json.JSONDecodeError, OSError):
+        return False
+
+
+def marcar_reservado(fecha_juego: date) -> None:
+    ESTADO.write_text(json.dumps({"ultima_reserva": fecha_juego.isoformat()}), encoding="utf-8")
 
 
 def resolver_objetivo(cfg: dict, fecha_juego: date) -> Objetivo | None:
@@ -373,6 +390,11 @@ def main() -> int:
         resumen_actions(f"### Sin configuracion para {fecha_juego}\nNo se intento ninguna reserva.")
         return 0
 
+    if ya_reservado(fecha_juego):
+        log(f"Ya hay una reserva confirmada para {fecha_juego} (estado.json). No hago nada.")
+        resumen_actions(f"### Ya reservado\n{fecha_juego} ya estaba confirmado, se salta este disparo.")
+        return 0
+
     log(f"Objetivo: {obj}")
     log(
         "MODO: INMEDIATO (--ahora), no espera la apertura"
@@ -481,6 +503,8 @@ def main() -> int:
                 "la invitacion desde su agenda, o la reserva se cae."
             )
             log(detalle.replace("\n", " | "))
+            if ok:
+                marcar_reservado(fecha_juego)
             resumen_actions(
                 f"### {'Reserva confirmada' if ok else 'Reserva dudosa'}\n```\n{detalle}\n```"
             )
