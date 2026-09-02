@@ -3,3 +3,4 @@ artefactos/
 *.pyc
 .env
 .venv/
+estado.json
