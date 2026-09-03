@@ -445,6 +445,17 @@ def main() -> int:
         page = ctx.new_page()
         page.set_default_timeout(20_000)
 
+        # El sitio es GeneXus: los botones (RESERVAR incluido) suelen disparar
+        # un confirm() nativo antes de mandar el post. Sin este handler,
+        # Playwright descarta cualquier dialog no manejado por default — el
+        # click "funciona" (no tira error) pero no reserva nada, sin dejar
+        # rastro visible en pantalla ni en el HTML.
+        def aceptar_dialog(dialog):
+            log(f"Dialog del sitio: {dialog.type} — {dialog.message!r}")
+            dialog.accept()
+
+        page.on("dialog", aceptar_dialog)
+
         try:
             apertura = momento_apertura(cfg, fecha_juego) if not args.ahora else None
 
