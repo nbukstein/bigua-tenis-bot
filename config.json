@@ -1,5 +1,5 @@
 {
-  "activo": false,
+  "activo": true,
   "tz": "America/Montevideo",
   "apertura": "21:00",
   "ci_invitado_default": "",
