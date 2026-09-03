@@ -1,5 +1,5 @@
 {
-  "activo": false,
+  "activo": true,
   "tz": "America/Montevideo",
   "apertura": "21:00",
   "ci_invitado_default": "",
@@ -28,6 +28,7 @@
   "override": {
     "2026-09-03": {
       "horas": [
+        7,
         8,
         9
       ],
