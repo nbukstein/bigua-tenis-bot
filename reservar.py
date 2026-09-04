@@ -496,11 +496,11 @@ def main() -> int:
             while time.monotonic() < limite:
                 vuelta += 1
                 try:
-                    page.goto(URL_TENIS, wait_until="domcontentloaded")
+                    page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=8_000)
                     if not sesion_activa(page):
                         log("Nos deslogueo en pleno poll — reentrando")
                         login(page, documento, password, tipo_doc)
-                        page.goto(URL_TENIS, wait_until="domcontentloaded")
+                        page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=8_000)
                     slots = leer_slots(page)
                 except Exception as exc:
                     log(f"vuelta {vuelta}: fallo ({exc}), reintento")
