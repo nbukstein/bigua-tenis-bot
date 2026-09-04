@@ -486,18 +486,26 @@ def main() -> int:
                 esperar_apertura(apertura, tz)
                 log(">>> APERTURA <<<")
 
-            # Poll hasta que aparezca el slot (los cupos tardan unos segundos en publicarse)
-            limite = time.monotonic() + (20 if args.ahora else 90)
+            # Poll hasta que aparezca el slot (los cupos tardan unos segundos en publicarse).
+            # A las 21:00:00 en punto el sitio recibe a todos los socios juntos y se pone
+            # lento — un timeout de una vuelta no puede tirar abajo el intento entero,
+            # tiene que reintentar mientras quede tiempo.
+            limite = time.monotonic() + (20 if args.ahora else 150)
             elegido = None
             vuelta = 0
             while time.monotonic() < limite:
                 vuelta += 1
-                page.goto(URL_TENIS, wait_until="domcontentloaded")
-                if not sesion_activa(page):
-                    log("Nos deslogueo en pleno poll — reentrando")
-                    login(page, documento, password, tipo_doc)
+                try:
                     page.goto(URL_TENIS, wait_until="domcontentloaded")
-                slots = leer_slots(page)
+                    if not sesion_activa(page):
+                        log("Nos deslogueo en pleno poll — reentrando")
+                        login(page, documento, password, tipo_doc)
+                        page.goto(URL_TENIS, wait_until="domcontentloaded")
+                    slots = leer_slots(page)
+                except Exception as exc:
+                    log(f"vuelta {vuelta}: fallo ({exc}), reintento")
+                    time.sleep(1.0)
+                    continue
                 if vuelta == 1 or slots:
                     log(f"vuelta {vuelta}: {len(slots)} slots — "
                         + ", ".join(f"{s['cancha']} {s['hora']}h {s['fecha']}" for s in slots[:8]))
