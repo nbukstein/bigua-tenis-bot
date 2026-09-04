@@ -1,5 +1,5 @@
 {
-  "activo": false,
+  "activo": true,
   "tz": "America/Montevideo",
   "apertura": "21:00",
   "ci_invitado_default": "",
@@ -26,7 +26,7 @@
   },
   "_comentario_override": "Pisa al default_semanal para una fecha puntual (la fecha en que se JUEGA, formato YYYY-MM-DD). Se borra solo cuando pasa.",
   "override": {
-    "2026-09-04": {
+    "2026-09-05": {
       "horas": [
         8,
         12,
