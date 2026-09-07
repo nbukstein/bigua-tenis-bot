@@ -249,29 +249,29 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
     La forma exacta del modal todavia no esta confirmada, asi que buscamos
     de forma generica un campo de documento y un boton de confirmacion.
     """
-    page.wait_for_timeout(1200)
+    SELECTORES_DOCUMENTO = (
+        "input[id*=DOCUMENTO]:visible, "
+        "input[id*=CEDULA]:visible, "
+        "input[id*=INVITADO]:visible, "
+        "input[placeholder*='ocumento']:visible, "
+        "input[placeholder*='dula']:visible, "
+        "input[type=number]:visible"
+    )
+
+    # El sitio es lento en general (no solo a las 21:00), y el modal de
+    # invitacion tarda en aparecer via AJAX — hay que esperarlo activamente
+    # en vez de una espera fija corta que puede ganarle de mano al render.
+    try:
+        page.wait_for_selector(SELECTORES_DOCUMENTO, timeout=10_000, state="visible")
+    except PWTimeout:
+        if capturar:
+            volcar_modal(page, "post-reservar")
+        return "sin-modal"
 
     if capturar:
         volcar_modal(page, "post-reservar")
 
-    campo = None
-    for sel in [
-        "input[id*=DOCUMENTO]:visible",
-        "input[id*=CEDULA]:visible",
-        "input[id*=INVITADO]:visible",
-        "input[placeholder*='ocumento']:visible",
-        "input[placeholder*='dula']:visible",
-    ]:
-        try:
-            loc = page.locator(sel).first
-            if loc.count() and loc.is_visible():
-                campo = loc
-                break
-        except Exception:
-            continue
-
-    if campo is None:
-        return "sin-modal"
+    campo = page.locator(SELECTORES_DOCUMENTO).first
 
     if not ci:
         raise RuntimeError(
