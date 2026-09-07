@@ -490,17 +490,17 @@ def main() -> int:
             # A las 21:00:00 en punto el sitio recibe a todos los socios juntos y se pone
             # lento — un timeout de una vuelta no puede tirar abajo el intento entero,
             # tiene que reintentar mientras quede tiempo.
-            limite = time.monotonic() + (20 if args.ahora else 150)
+            limite = time.monotonic() + (60 if args.ahora else 150)
             elegido = None
             vuelta = 0
             while time.monotonic() < limite:
                 vuelta += 1
                 try:
-                    page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=8_000)
+                    page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=20_000)
                     if not sesion_activa(page):
                         log("Nos deslogueo en pleno poll — reentrando")
                         login(page, documento, password, tipo_doc)
-                        page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=8_000)
+                        page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=20_000)
                     slots = leer_slots(page)
                 except Exception as exc:
                     log(f"vuelta {vuelta}: fallo ({exc}), reintento")
