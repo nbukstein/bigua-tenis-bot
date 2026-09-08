@@ -282,6 +282,9 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
     log(f"Modal de invitacion detectado, completando C.I.")
     campo.fill(ci)
 
+    if capturar:
+        volcar_modal(page, "modal-completado")
+
     for sel in [
         "input[type=submit]:visible",
         "input[id*=CONFIRM]:visible",
@@ -294,6 +297,8 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
             if loc.count() and loc.is_visible():
                 loc.click()
                 page.wait_for_timeout(1500)
+                if capturar:
+                    volcar_modal(page, "post-confirmar")
                 return "confirmado"
         except Exception:
             continue
@@ -528,6 +533,9 @@ def main() -> int:
                 resumen_actions(f"### Dry run\nHabria reservado: {elegido['texto']}")
                 return 0
 
+            if args.capturar:
+                volcar_modal(page, "antes")
+
             page.click(f"#{elegido['btn']}")
             estado = completar_invitacion(page, obj.ci_invitado, capturar=args.capturar)
             log(f"Estado tras RESERVAR: {estado}")
@@ -539,6 +547,8 @@ def main() -> int:
             # Verificacion: la reserva tiene que aparecer en Mi Agenda
             page.goto(URL_AGENDA, wait_until="domcontentloaded")
             page.wait_for_timeout(1500)
+            if args.capturar:
+                volcar_modal(page, "agenda")
             agenda = page.inner_text("body")
             ok = elegido["cancha"].lower() in agenda.lower()
 
