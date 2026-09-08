@@ -4,3 +4,4 @@ artefactos/
 .env
 .venv/
 estado.json
+ultima_corrida.log

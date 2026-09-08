@@ -46,8 +46,16 @@ URL_AGENDA = f"{BASE}/com.biguasocios.wpagendaclasessocio"
 DIAS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]
 
 
+ULTIMA_CORRIDA = RAIZ / "ultima_corrida.log"
+_log_fh = None
+
+
 def log(msg: str) -> None:
-    print(f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {msg}", flush=True)
+    linea = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {msg}"
+    print(linea, flush=True)
+    if _log_fh:
+        _log_fh.write(linea + "\n")
+        _log_fh.flush()
 
 
 # --------------------------------------------------------------------------
@@ -395,6 +403,9 @@ def resumen_actions(texto: str) -> None:
 # --------------------------------------------------------------------------
 
 def main() -> int:
+    global _log_fh
+    _log_fh = ULTIMA_CORRIDA.open("w", encoding="utf-8")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--ahora", action="store_true", help="no esperar a la hora de apertura")
     ap.add_argument("--dry-run", action="store_true", help="buscar el slot pero no reservar")
