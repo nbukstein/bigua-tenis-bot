@@ -565,6 +565,16 @@ def main() -> int:
             if args.capturar:
                 volcar_modal(page, "antes")
 
+            # El sitio (GeneXus) conecta los botones a JS despues de que carga
+            # el HTML. El video de una corrida real mostro el click sin efecto
+            # alguno — probable causa: clickeamos antes de que ese JS termine
+            # de cablear el handler del boton. Le damos margen antes de tocarlo.
+            try:
+                page.wait_for_load_state("networkidle", timeout=5_000)
+            except PWTimeout:
+                pass
+            page.wait_for_timeout(500)
+
             page.click(f"#{elegido['btn']}")
             estado = completar_invitacion(page, obj.ci_invitado, capturar=args.capturar)
             log(f"Estado tras RESERVAR: {estado}")
