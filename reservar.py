@@ -10,7 +10,7 @@ Uso:
     python reservar.py                    # modo normal (respeta la hora de apertura)
     python reservar.py --ahora            # intenta reservar ya, sin esperar
     python reservar.py --dry-run          # busca el slot pero NO reserva
-    python reservar.py --capturar         # vuelca el HTML del modal de invitacion
+    python reservar.py --capturar         # screenshots/HTML de cada paso + video de la sesion
     python reservar.py --fecha 2026-08-21 # fuerza la fecha a jugar
 """
 
@@ -451,12 +451,20 @@ def main() -> int:
     password = os.environ["BIGUA_PASSWORD"]
     tipo_doc = os.getenv("BIGUA_TIPO_DOC", "1")
 
+    if args.capturar:
+        ARTEFACTOS.mkdir(exist_ok=True)
+
     with sync_playwright() as pw:
         navegador = pw.chromium.launch(headless=True)
         ctx = navegador.new_context(
             locale="es-UY",
             timezone_id=cfg.get("tz", "America/Montevideo"),
             viewport={"width": 1400, "height": 900},
+            # Con --capturar grabamos video de toda la sesion: mas rapido para
+            # ver que pasa realmente tras el click que seguir adivinando por
+            # selectores y screenshots sueltos.
+            record_video_dir=str(ARTEFACTOS) if args.capturar else None,
+            record_video_size={"width": 1400, "height": 900} if args.capturar else None,
         )
         page = ctx.new_page()
         page.set_default_timeout(20_000)
@@ -595,8 +603,11 @@ def main() -> int:
             notificar(cfg, "Biguá: el bot falló", f"{exc}\n\n{traceback.format_exc()}")
             return 2
         finally:
+            video = page.video
             ctx.close()
             navegador.close()
+            if args.capturar and video:
+                log(f"Video guardado: {video.path()}")
 
 
 if __name__ == "__main__":
