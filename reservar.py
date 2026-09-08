@@ -253,22 +253,28 @@ def volcar_modal(page: Page, etiqueta: str) -> None:
 
 def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
     """
-    Tras tocar RESERVAR el sitio pide la C.I. del socio invitado.
-    La forma exacta del modal todavia no esta confirmada, asi que buscamos
-    de forma generica un campo de documento y un boton de confirmacion.
+    Tras tocar RESERVAR, el sitio pasa a una pantalla de "Participantes":
+    un <select> de tipo de documento (ya viene en C.I. por default), el
+    numero de documento del invitado, y un boton "Confirmar". IDs reales
+    tomados del sitio (pueden llevar un sufijo numerico si hay mas de un
+    formulario en pantalla, de ahi el *=).
     """
+    SEL_TIPO_DOC = "select[id^=vUSUARIODOCUMENTOTIPO]:visible"
+    SEL_NRO_DOC = "input[id^=vUSUARIODOCUMENTONRO]:visible"
+    SEL_CONFIRMAR = "input[id^=BTNBTNVALIDAR]:visible"
+
     SELECTORES_DOCUMENTO = (
+        f"{SEL_NRO_DOC}, "
         "input[id*=DOCUMENTO]:visible, "
         "input[id*=CEDULA]:visible, "
         "input[id*=INVITADO]:visible, "
         "input[placeholder*='ocumento']:visible, "
-        "input[placeholder*='dula']:visible, "
-        "input[type=number]:visible"
+        "input[placeholder*='dula']:visible"
     )
 
-    # El sitio es lento en general (no solo a las 21:00), y el modal de
-    # invitacion tarda en aparecer via AJAX — hay que esperarlo activamente
-    # en vez de una espera fija corta que puede ganarle de mano al render.
+    # El sitio es lento en general (no solo a las 21:00), y esta pantalla
+    # tarda en aparecer via AJAX — hay que esperarla activamente en vez de
+    # una espera fija corta que puede ganarle de mano al render.
     try:
         page.wait_for_selector(SELECTORES_DOCUMENTO, timeout=10_000, state="visible")
     except PWTimeout:
@@ -279,21 +285,25 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
     if capturar:
         volcar_modal(page, "post-reservar")
 
-    campo = page.locator(SELECTORES_DOCUMENTO).first
-
     if not ci:
         raise RuntimeError(
             "El sitio pide la C.I. del socio invitado pero no hay ninguna "
             "configurada (ci_invitado_default esta vacio)."
         )
 
-    log(f"Modal de invitacion detectado, completando C.I.")
+    tipo_doc = page.locator(SEL_TIPO_DOC).first
+    if tipo_doc.count():
+        tipo_doc.select_option("1")  # C.I.
+
+    campo = page.locator(SELECTORES_DOCUMENTO).first
+    log(f"Pantalla de participantes detectada, completando C.I.")
     campo.fill(ci)
 
     if capturar:
         volcar_modal(page, "modal-completado")
 
     for sel in [
+        SEL_CONFIRMAR,
         "input[type=submit]:visible",
         "input[id*=CONFIRM]:visible",
         "button:has-text('CONFIRMAR')",
