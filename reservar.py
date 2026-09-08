@@ -490,6 +490,14 @@ def main() -> int:
 
         page.on("dialog", aceptar_dialog)
 
+        if args.capturar:
+            # Cuatro fixes de UI seguidos (dialog, espera activa, timeouts,
+            # selectores reales) sin cambiar el resultado: el click no genera
+            # ningun efecto visible. En vez de seguir adivinando por pantalla,
+            # vemos que pedidos dispara realmente contra el servidor.
+            page.on("request", lambda r: log(f"-> {r.method} {r.url}") if r.method == "POST" or "ajax" in r.url.lower() else None)
+            page.on("response", lambda r: log(f"<- {r.status} {r.url}") if r.request.method == "POST" or "ajax" in r.url.lower() else None)
+
         try:
             apertura = momento_apertura(cfg, fecha_juego) if not args.ahora else None
 
