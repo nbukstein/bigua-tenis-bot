@@ -272,11 +272,11 @@ def completar_invitacion(page: Page, ci: str, capturar: bool = False) -> str:
         "input[placeholder*='dula']:visible"
     )
 
-    # El sitio es lento en general (no solo a las 21:00), y esta pantalla
-    # tarda en aparecer via AJAX — hay que esperarla activamente en vez de
-    # una espera fija corta que puede ganarle de mano al render.
+    # Confirmado con logging de red: el click SI dispara el POST correcto al
+    # servidor, pero la respuesta de ese POST puntual puede tardar bastante
+    # mas que una navegacion normal. 10s no alcanzaba — subimos el margen.
     try:
-        page.wait_for_selector(SELECTORES_DOCUMENTO, timeout=10_000, state="visible")
+        page.wait_for_selector(SELECTORES_DOCUMENTO, timeout=30_000, state="visible")
     except PWTimeout:
         if capturar:
             volcar_modal(page, "post-reservar")
