@@ -121,7 +121,7 @@ export default function Panel() {
   // ---------------------------------------------------------------- panel
   const activo = !!cfg?.activo;
   const hayOverride = !!cfg?.override?.[fecha];
-  const motor = cfg?.motor === "paralelo" ? "paralelo" : "simple";
+  const motor = ["paralelo", "async"].includes(cfg?.motor) ? cfg.motor : "simple";
 
   return (
     <div className="wrap">
@@ -159,9 +159,10 @@ export default function Panel() {
       <div className="card">
         <h2>Motor (experimental)</h2>
         <div className="sub" style={{ marginBottom: 10 }}>
-          "Simple" es el que ya probamos funcionando de punta a punta. "Paralelo"
-          lanza varios intentos a la vez para ver si gana alguno más rápido —
-          todavía en pruebas, usalo con cuidado en una apertura real.
+          "Simple" es el que ya probamos funcionando de punta a punta.
+          "Paralelo" y "Async" lanzan varios intentos a la vez (con dos
+          mecanismos distintos) para ver si gana alguno más rápido —
+          todavía en pruebas, usalos con cuidado en una apertura real.
         </div>
         <div className="horas">
           <button
@@ -179,6 +180,14 @@ export default function Panel() {
             onClick={() => patch({ motor: "paralelo" }, "Motor: paralelo (experimental)")}
           >
             Paralelo
+          </button>
+          <button
+            className="chip"
+            data-sel={motor === "async"}
+            disabled={ocupado}
+            onClick={() => patch({ motor: "async" }, "Motor: async (experimental)")}
+          >
+            Async
           </button>
         </div>
       </div>
