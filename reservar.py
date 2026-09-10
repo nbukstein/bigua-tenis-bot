@@ -552,7 +552,7 @@ def main() -> int:
                     slots = leer_slots(page)
                 except Exception as exc:
                     log(f"vuelta {vuelta}: fallo ({exc}), reintento")
-                    time.sleep(1.0)
+                    time.sleep(0.2)
                     continue
                 if vuelta == 1 or slots:
                     log(f"vuelta {vuelta}: {len(slots)} slots — "
@@ -560,7 +560,7 @@ def main() -> int:
                 elegido = elegir_slot(slots, obj)
                 if elegido:
                     break
-                time.sleep(1.0)
+                time.sleep(0.2)
 
             if not elegido:
                 msg = f"No aparecio ningun horario de la lista {obj.horas} para el {fecha_juego}."

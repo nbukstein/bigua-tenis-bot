@@ -114,14 +114,14 @@ def worker(
                     slots = base.leer_slots(page)
                 except Exception as exc:
                     log_worker(idx, f"vuelta {vuelta}: fallo ({exc}), reintento")
-                    time.sleep(1.0)
+                    time.sleep(0.2)
                     continue
                 if vuelta == 1 or slots:
                     log_worker(idx, f"vuelta {vuelta}: {len(slots)} slots")
                 elegido = base.elegir_slot(slots, obj)
                 if elegido:
                     break
-                time.sleep(1.0)
+                time.sleep(0.2)
 
             if not elegido:
                 log_worker(idx, "no encontro nada en su ventana")
