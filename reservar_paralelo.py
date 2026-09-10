@@ -136,7 +136,7 @@ def worker(
             if dry_run:
                 RESULTADO.write_text(json.dumps({
                     "worker": idx, "dry_run": True, "elegido": elegido,
-                }), encoding="utf-8")
+                }, default=str), encoding="utf-8")
                 return
 
             if capturar:
@@ -166,7 +166,7 @@ def worker(
             RESULTADO.write_text(json.dumps({
                 "worker": idx, "ok": ok, "elegido": elegido,
                 "ci_invitado": obj.ci_invitado,
-            }), encoding="utf-8")
+            }, default=str), encoding="utf-8")
             log_worker(idx, f"listo, ok={ok}")
 
         except Exception as exc:
