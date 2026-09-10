@@ -5,3 +5,4 @@ artefactos/
 .venv/
 estado.json
 ultima_corrida.log
+cron.log*
