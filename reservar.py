@@ -527,18 +527,27 @@ def main() -> int:
 
                 esperar_apertura(apertura, tz)
                 log(">>> APERTURA <<<")
+            else:
+                # --ahora salta todo lo de arriba, asi que todavia no estamos
+                # parados en URL_TENIS para que el reload() de abajo tenga sentido.
+                page.goto(URL_TENIS, wait_until="domcontentloaded")
 
             # Poll hasta que aparezca el slot (los cupos tardan unos segundos en publicarse).
             # A las 21:00:00 en punto el sitio recibe a todos los socios juntos y se pone
             # lento — un timeout de una vuelta no puede tirar abajo el intento entero,
             # tiene que reintentar mientras quede tiempo.
+            #
+            # asegurar_sesion() ya nos dejo parados en URL_TENIS ~15s antes de la
+            # apertura (pagina cargada, conexion ya abierta). Usamos reload() en vez
+            # de goto() para reusar eso en la vuelta 1 — cuando el sitio recien recibe
+            # a todo el mundo junto, evitar una navegacion desde cero ahorra tiempo.
             limite = time.monotonic() + (60 if args.ahora else 150)
             elegido = None
             vuelta = 0
             while time.monotonic() < limite:
                 vuelta += 1
                 try:
-                    page.goto(URL_TENIS, wait_until="domcontentloaded", timeout=20_000)
+                    page.reload(wait_until="domcontentloaded", timeout=20_000)
                     if not sesion_activa(page):
                         log("Nos deslogueo en pleno poll — reentrando")
                         login(page, documento, password, tipo_doc)
