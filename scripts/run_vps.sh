@@ -22,4 +22,12 @@ set -a
 source .env
 set +a
 
-exec .venv/bin/python reservar.py "$@"
+# motor: 'simple' (default) usa reservar.py de siempre. 'paralelo' es
+# experimental (reservar_paralelo.py, ver config.json) — no cambia nada del
+# camino default.
+MOTOR=$(.venv/bin/python -c "import json; print(json.load(open('config.json')).get('motor', 'simple'))")
+if [ "$MOTOR" = "paralelo" ]; then
+    exec .venv/bin/python reservar_paralelo.py "$@"
+else
+    exec .venv/bin/python reservar.py "$@"
+fi

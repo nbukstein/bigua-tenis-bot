@@ -6,3 +6,6 @@ artefactos/
 estado.json
 ultima_corrida.log
 cron.log*
+paralelo_w*.log
+paralelo_ticket.lock
+paralelo_resultado.json

@@ -121,6 +121,7 @@ export default function Panel() {
   // ---------------------------------------------------------------- panel
   const activo = !!cfg?.activo;
   const hayOverride = !!cfg?.override?.[fecha];
+  const motor = cfg?.motor === "paralelo" ? "paralelo" : "simple";
 
   return (
     <div className="wrap">
@@ -152,6 +153,33 @@ export default function Panel() {
             aria-label={activo ? "Apagar" : "Prender"}
             onClick={() => patch({ activo: !activo }, activo ? "Bot apagado" : "Bot activado")}
           />
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Motor (experimental)</h2>
+        <div className="sub" style={{ marginBottom: 10 }}>
+          "Simple" es el que ya probamos funcionando de punta a punta. "Paralelo"
+          lanza varios intentos a la vez para ver si gana alguno más rápido —
+          todavía en pruebas, usalo con cuidado en una apertura real.
+        </div>
+        <div className="horas">
+          <button
+            className="chip"
+            data-sel={motor === "simple"}
+            disabled={ocupado}
+            onClick={() => patch({ motor: "simple" }, "Motor: simple")}
+          >
+            Simple
+          </button>
+          <button
+            className="chip"
+            data-sel={motor === "paralelo"}
+            disabled={ocupado}
+            onClick={() => patch({ motor: "paralelo" }, "Motor: paralelo (experimental)")}
+          >
+            Paralelo
+          </button>
         </div>
       </div>
 
