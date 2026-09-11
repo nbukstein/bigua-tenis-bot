@@ -263,9 +263,15 @@ def main() -> int:
             base.esperar_apertura(apertura, tz)
             log(">>> APERTURA <<<")
 
+        # En --ahora (prueba manual, sin esperar apertura) no tiene sentido
+        # reintentar todo el minuto si viene vacio: no va a aparecer nada de
+        # la nada fuera de la apertura real. En la apertura real SI seguimos
+        # reintentando toda la ventana, porque los cupos tardan en publicarse.
+        MAX_VACIOS_AHORA = 3
         limite = time.monotonic() + (60 if args.ahora else 150)
         elegido = None
         vuelta = 0
+        vacios_seguidos = 0
         while time.monotonic() < limite:
             vuelta += 1
             try:
@@ -279,6 +285,13 @@ def main() -> int:
             elegido = base.elegir_slot(slots, obj)
             if elegido:
                 break
+            if not slots:
+                vacios_seguidos += 1
+                if args.ahora and vacios_seguidos >= MAX_VACIOS_AHORA:
+                    log(f"{MAX_VACIOS_AHORA} vueltas vacias seguidas en --ahora, corto.")
+                    break
+            else:
+                vacios_seguidos = 0
             time.sleep(0.2)
 
         if not elegido:
