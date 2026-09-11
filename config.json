@@ -1,5 +1,5 @@
 {
-  "activo": true,
+  "activo": false,
   "_comentario_motor": "'simple' = reservar.py (un intento). 'paralelo' = reservar_paralelo.py, experimental: N procesos en paralelo, el primero que encuentra el horario reserva.",
   "motor": "simple",
   "paralelo_n": 3,
