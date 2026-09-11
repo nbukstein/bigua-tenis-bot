@@ -49,6 +49,11 @@ export async function PATCH(req: Request) {
       mensaje = "panel: cambio de C.I. por defecto";
     }
 
+    if (typeof cambio.motor === "string" && ["simple", "paralelo", "async", "api"].includes(cambio.motor)) {
+      nuevo.motor = cambio.motor;
+      mensaje = `panel: motor -> ${cambio.motor}`;
+    }
+
     // Limpieza: sacamos overrides de fechas ya pasadas.
     const hoy = new Date().toISOString().slice(0, 10);
     for (const f of Object.keys(nuevo.override || {})) {
