@@ -29,6 +29,9 @@ export default function Panel() {
   const [ci, setCi] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "mal"; txt: string } | null>(null);
+  const [fechaBuscar, setFechaBuscar] = useState(manana());
+  const [canchas, setCanchas] = useState<any[] | null>(null);
+  const [buscando, setBuscando] = useState(false);
 
   async function cargar() {
     const r = await fetch("/api/config");
@@ -99,6 +102,16 @@ export default function Panel() {
     setOcupado(false);
     if (r.ok) { mostrar("ok", "Runner disparado — mirá el resultado abajo en un minuto"); setTimeout(cargar, 8000); }
     else mostrar("mal", "No se pudo disparar el runner");
+  }
+
+  async function buscarCanchas() {
+    setBuscando(true);
+    setCanchas(null);
+    const r = await fetch(`/api/canchas?fecha=${fechaBuscar}`);
+    const j = await r.json();
+    setBuscando(false);
+    if (r.ok) setCanchas(j.canchas);
+    else mostrar("mal", j.error || "No se pudo buscar canchas");
   }
 
   // ---------------------------------------------------------------- login
@@ -250,6 +263,26 @@ export default function Panel() {
         <div className="sub" style={{ marginTop: 8 }}>
           Corre el runner en el momento, sin esperar a las 21:00. Sirve si se liberó una cancha.
         </div>
+      </div>
+
+      <div className="card">
+        <h2>Buscar canchas disponibles</h2>
+        <input type="date" value={fechaBuscar} onChange={(e) => setFechaBuscar(e.target.value)} />
+        <div style={{ height: 10 }} />
+        <button className="accion fantasma" disabled={buscando} onClick={buscarCanchas}>
+          {buscando ? "Buscando…" : "Buscar canchas"}
+        </button>
+        {canchas !== null && (
+          <div style={{ marginTop: 12 }}>
+            {canchas.length === 0 && <div className="sub">No hay canchas disponibles para esa fecha.</div>}
+            {canchas.map((c: any, i: number) => (
+              <div className="corrida" key={i}>
+                <span>{c.ClaseNombre} — {c.Clasefechahorastr}</span>
+                <span>{c.Clasecuposstr}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card">
