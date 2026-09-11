@@ -10,3 +10,4 @@ paralelo_w*.log
 paralelo_ticket.lock
 paralelo_resultado.json
 async_w*.log
+ultima_corrida_api.log

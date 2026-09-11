@@ -22,11 +22,12 @@ set -a
 source .env
 set +a
 
-# motor: 'simple' (default) usa reservar.py de siempre. 'paralelo' y 'async'
-# son experimentales (ver config.json) — no cambian nada del camino default.
+# motor: 'simple' (default) usa reservar.py de siempre. 'paralelo', 'async' y
+# 'api' son experimentales (ver config.json) — no cambian nada del camino default.
 MOTOR=$(.venv/bin/python -c "import json; print(json.load(open('config.json')).get('motor', 'simple'))")
 case "$MOTOR" in
     paralelo) exec .venv/bin/python reservar_paralelo.py "$@" ;;
     async)    exec .venv/bin/python reservar_async.py "$@" ;;
+    api)      exec .venv/bin/python reservar_api.py "$@" ;;
     *)        exec .venv/bin/python reservar.py "$@" ;;
 esac

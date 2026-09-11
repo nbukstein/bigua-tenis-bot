@@ -121,7 +121,7 @@ export default function Panel() {
   // ---------------------------------------------------------------- panel
   const activo = !!cfg?.activo;
   const hayOverride = !!cfg?.override?.[fecha];
-  const motor = ["paralelo", "async"].includes(cfg?.motor) ? cfg.motor : "simple";
+  const motor = ["paralelo", "async", "api"].includes(cfg?.motor) ? cfg.motor : "simple";
 
   return (
     <div className="wrap">
@@ -161,8 +161,10 @@ export default function Panel() {
         <div className="sub" style={{ marginBottom: 10 }}>
           "Simple" es el que ya probamos funcionando de punta a punta.
           "Paralelo" y "Async" lanzan varios intentos a la vez (con dos
-          mecanismos distintos) para ver si gana alguno más rápido —
-          todavía en pruebas, usalos con cuidado en una apertura real.
+          mecanismos distintos). "API" no usa navegador — habla directo
+          con el backend que usa la app móvil, potencialmente mucho más
+          rápido. Todos menos "Simple" están en pruebas — usalos con
+          cuidado en una apertura real.
         </div>
         <div className="horas">
           <button
@@ -188,6 +190,14 @@ export default function Panel() {
             onClick={() => patch({ motor: "async" }, "Motor: async (experimental)")}
           >
             Async
+          </button>
+          <button
+            className="chip"
+            data-sel={motor === "api"}
+            disabled={ocupado}
+            onClick={() => patch({ motor: "api" }, "Motor: API directo (experimental)")}
+          >
+            API
           </button>
         </div>
       </div>
