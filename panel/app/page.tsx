@@ -229,7 +229,7 @@ export default function Panel() {
 
         <div style={{ height: 14 }} />
         <h2>C.I. del invitado</h2>
-        <input type="text" inputMode="numeric" value={ci} onChange={(e) => setCi(e.target.value)} placeholder="sin puntos ni guión" />
+        <input type="text" inputMode="numeric" value={ci} onChange={(e) => setCi(e.target.value)} placeholder="sin puntos ni guión — por defecto 32873613" />
         <div className="sub">Tiene 30 minutos para aceptar la invitación o la reserva se cae.</div>
 
         <div style={{ height: 14 }} />
