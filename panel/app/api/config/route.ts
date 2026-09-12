@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { autenticado } from "@/lib/auth";
-import { leerConfig, escribirConfig, ultimasCorridas, type Config } from "@/lib/gh";
+import { leerConfig, escribirConfig, leerHistorial, type Config } from "@/lib/gh";
 
 export const dynamic = "force-dynamic";
 
@@ -8,8 +8,8 @@ export async function GET() {
   if (!autenticado()) return NextResponse.json({ error: "no-auth" }, { status: 401 });
   try {
     const { config } = await leerConfig();
-    const corridas = await ultimasCorridas(5);
-    return NextResponse.json({ config, corridas });
+    const historial = await leerHistorial(3);
+    return NextResponse.json({ config, historial });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

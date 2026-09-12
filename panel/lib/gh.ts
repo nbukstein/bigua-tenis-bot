@@ -2,6 +2,7 @@ const REPO = process.env.GH_REPO!;          // "nbukstein/bigua-tenis-bot"
 const TOKEN = process.env.GH_TOKEN!;        // PAT fine-grained: Contents RW + Actions RW
 const RAMA = process.env.GH_BRANCH || "main";
 const RUTA_CONFIG = "config.json";
+const RUTA_HISTORIAL = "historial.json";
 const WORKFLOW = "reservar.yml";
 
 const API = "https://api.github.com";
@@ -57,18 +58,27 @@ export async function dispararWorkflow(inputs: Record<string, string>) {
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${await r.text()}`);
 }
 
-export async function ultimasCorridas(n = 5) {
+export type EntradaHistorial = {
+  fecha: string;
+  origen: string;
+  motor: string;
+  objetivo_fecha: string | null;
+  ok: boolean | null;
+  detalle: string;
+};
+
+export async function leerHistorial(n = 3): Promise<EntradaHistorial[]> {
   const r = await fetch(
-    `${API}/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=${n}`,
+    `${API}/repos/${REPO}/contents/${RUTA_HISTORIAL}?ref=${RAMA}`,
     { headers: headers(), cache: "no-store" }
   );
   if (!r.ok) return [];
   const j = await r.json();
-  return (j.workflow_runs || []).map((w: any) => ({
-    id: w.id,
-    estado: w.status,
-    resultado: w.conclusion,
-    cuando: w.created_at,
-    url: w.html_url,
-  }));
+  const texto = Buffer.from(j.content, "base64").toString("utf-8");
+  try {
+    const hist: EntradaHistorial[] = JSON.parse(texto);
+    return hist.slice(-n).reverse();
+  } catch {
+    return [];
+  }
 }

@@ -17,13 +17,26 @@ function etiquetaFecha(iso: string) {
   return `${DIAS[f.getDay()]} ${d}/${m}`;
 }
 
-type Corrida = { id: number; estado: string; resultado: string | null; cuando: string; url: string };
+type EntradaHistorial = {
+  fecha: string;
+  origen: string;
+  motor: string;
+  objetivo_fecha: string | null;
+  ok: boolean | null;
+  detalle: string;
+};
+
+function mensajeResultado(h: EntradaHistorial) {
+  if (h.ok === true) return "toma pa vos gil, aguante chichee";
+  if (h.ok === false) return "mierda chiche, ya vamos a poder";
+  return h.detalle;
+}
 
 export default function Panel() {
   const [auth, setAuth] = useState<boolean | null>(null);
   const [pass, setPass] = useState("");
   const [cfg, setCfg] = useState<any>(null);
-  const [corridas, setCorridas] = useState<Corrida[]>([]);
+  const [historial, setHistorial] = useState<EntradaHistorial[]>([]);
   const [fecha, setFecha] = useState(manana());
   const [horas, setHoras] = useState<number[]>([]);
   const [ci, setCi] = useState("");
@@ -39,7 +52,7 @@ export default function Panel() {
     const j = await r.json();
     setAuth(true);
     setCfg(j.config);
-    setCorridas(j.corridas || []);
+    setHistorial(j.historial || []);
     setCi(j.config?.ci_invitado_default || "");
     aplicarFecha(fecha, j.config);
   }
@@ -148,6 +161,7 @@ export default function Panel() {
       {aviso && <div className={`aviso ${aviso.tipo === "ok" ? "ok" : "mal"}`}>{aviso.txt}</div>}
 
       <div className="card">
+        <h2>Estado actual</h2>
         <div className="fila">
           <div>
             <div className={`estado ${activo ? "on" : "off"}`}>
@@ -166,6 +180,11 @@ export default function Panel() {
             aria-label={activo ? "Apagar" : "Prender"}
             onClick={() => patch({ activo: !activo }, activo ? "Bot apagado" : "Bot activado")}
           />
+        </div>
+        <div className="sub" style={{ marginTop: 10 }}>
+          Motor: <strong>{motor}</strong> · Objetivo {etiquetaFecha(fecha)}:{" "}
+          {horas.length ? horas.map((h) => h + ":00").join(" → ") : "sin horarios"} · C.I. invitado:{" "}
+          {ci || "—"}
         </div>
       </div>
 
@@ -216,7 +235,7 @@ export default function Panel() {
       </div>
 
       <div className="card">
-        <h2>Horario</h2>
+        <h2>Configurar ahora</h2>
         <input type="date" value={fecha} min={manana()} onChange={(e) => setFecha(e.target.value)} />
         <div className="sub" style={{ marginBottom: 12 }}>
           Para jugar el <strong>{etiquetaFecha(fecha)}</strong> — se reserva a las 21:00 del día anterior.
@@ -274,7 +293,12 @@ export default function Panel() {
         </button>
         {canchas !== null && (
           <div style={{ marginTop: 12 }}>
-            {canchas.length === 0 && <div className="sub">No hay canchas disponibles para esa fecha.</div>}
+            {canchas.length === 0 && <div className="sub">No se encontraron canchas para esa fecha.</div>}
+            {canchas.length > 0 && (
+              <div className="sub" style={{ marginBottom: 6 }}>
+                Se encontraron {canchas.length} cancha{canchas.length === 1 ? "" : "s"}:
+              </div>
+            )}
             {canchas.map((c: any, i: number) => (
               <div className="corrida" key={i}>
                 <span>{c.ClaseNombre} — {c.Clasefechahorastr}</span>
@@ -286,25 +310,18 @@ export default function Panel() {
       </div>
 
       <div className="card">
-        <h2>Últimas corridas</h2>
-        {corridas.length === 0 && <div className="sub">Todavía no corrió ninguna vez.</div>}
-        {corridas.map((c) => {
-          const color =
-            c.resultado === "success" ? "var(--ok)"
-            : c.resultado === "failure" ? "var(--alerta)"
-            : "var(--off)";
-          return (
-            <div className="corrida" key={c.id}>
-              <span>
-                <span className="punto" style={{ background: color }} />
-                {new Date(c.cuando).toLocaleString("es-UY", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-              </span>
-              <a href={c.url} target="_blank" rel="noreferrer">
-                {c.resultado || c.estado} ↗
-              </a>
-            </div>
-          );
-        })}
+        <h2>Histórico, últimos 3 intentos</h2>
+        {historial.length === 0 && <div className="sub">Todavía no corrió ninguna vez.</div>}
+        {historial.map((h, i) => (
+          <div className="corrida" key={i}>
+            <span>
+              <span className="punto" style={{ background: h.ok ? "var(--ok)" : "var(--alerta)" }} />
+              {new Date(h.fecha).toLocaleString("es-UY", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+              {" · "}{h.origen} · {h.motor}
+            </span>
+            <span>{mensajeResultado(h)}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
