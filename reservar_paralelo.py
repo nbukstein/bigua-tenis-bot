@@ -237,6 +237,7 @@ def main() -> int:
         msg = f"No aparecio ningun horario de la lista {obj.horas} para el {fecha_juego} (con {n} workers en paralelo)."
         print(msg)
         base.notificar(cfg, "Biguá (paralelo): no se consiguió cancha", msg)
+        base.registrar_corrida("paralelo", fecha_juego, False, msg)
         return 1
 
     r = json.loads(RESULTADO.read_text(encoding="utf-8"))
@@ -264,6 +265,7 @@ def main() -> int:
         f"Biguá (paralelo): {'cancha reservada' if ok else 'reserva sin confirmar'} — {elegido['texto']}",
         detalle,
     )
+    base.registrar_corrida("paralelo", fecha_juego, ok, detalle)
     return 0 if ok else 1
 
 

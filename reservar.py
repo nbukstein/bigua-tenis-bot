@@ -21,6 +21,7 @@ import json
 import os
 import re
 import smtplib
+import socket
 import subprocess
 import sys
 import time
@@ -37,6 +38,8 @@ RAIZ = Path(__file__).parent
 CONFIG = RAIZ / "config.json"
 ARTEFACTOS = RAIZ / "artefactos"
 ESTADO = RAIZ / "estado.json"
+HISTORIAL = RAIZ / "historial.json"
+ORIGEN = os.getenv("ORIGEN") or socket.gethostname()
 
 BASE = "https://bigua.uy"
 URL_LOGIN = f"{BASE}/com.biguasocios.ingresosocios"
@@ -98,6 +101,17 @@ def marcar_reservado(fecha_juego: date) -> None:
     ESTADO.write_text(json.dumps({"ultima_reserva": fecha_juego.isoformat()}), encoding="utf-8")
 
 
+def _git_commit_push(rutas: list[str], mensaje: str) -> bool:
+    try:
+        subprocess.run(["git", "add", *rutas], cwd=RAIZ, check=True)
+        subprocess.run(["git", "commit", "-m", mensaje], cwd=RAIZ, check=True)
+        subprocess.run(["git", "push"], cwd=RAIZ, check=True)
+        return True
+    except subprocess.CalledProcessError as exc:
+        log(f"ADVERTENCIA: no se pudo commitear/pushear ({rutas}): {exc}")
+        return False
+
+
 def desactivar(cfg: dict) -> None:
     """El switch 'Activo' del panel es de un solo uso: cada activacion vale
     para UN intento (la apertura de esa noche). Se consume aca, apenas
@@ -106,16 +120,29 @@ def desactivar(cfg: dict) -> None:
     del switch."""
     cfg["activo"] = False
     CONFIG.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    try:
-        subprocess.run(["git", "add", "config.json"], cwd=RAIZ, check=True)
-        subprocess.run(
-            ["git", "commit", "-m", "bot: auto-apagado tras el intento de esta noche"],
-            cwd=RAIZ, check=True,
-        )
-        subprocess.run(["git", "push"], cwd=RAIZ, check=True)
+    if _git_commit_push(["config.json"], "bot: auto-apagado tras el intento de esta noche"):
         log("Bot desactivado y pusheado (activo=false)")
-    except subprocess.CalledProcessError as exc:
-        log(f"ADVERTENCIA: no se pudo commitear/pushear la desactivacion: {exc}")
+
+
+def registrar_corrida(motor: str, fecha_juego: date | None, ok: bool | None, detalle: str) -> None:
+    """Deja rastro de la corrida en historial.json (commiteado al repo) para
+    que el panel pueda mostrar que paso, sin importar en que maquina corrio
+    (VPS Uruguay, Mac, etc. — ver ORIGEN)."""
+    try:
+        hist = json.loads(HISTORIAL.read_text(encoding="utf-8")) if HISTORIAL.exists() else []
+    except (json.JSONDecodeError, OSError):
+        hist = []
+    hist.append({
+        "fecha": datetime.now().isoformat(timespec="seconds"),
+        "origen": ORIGEN,
+        "motor": motor,
+        "objetivo_fecha": fecha_juego.isoformat() if fecha_juego else None,
+        "ok": ok,
+        "detalle": detalle,
+    })
+    hist = hist[-20:]
+    HISTORIAL.write_text(json.dumps(hist, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    _git_commit_push(["historial.json"], f"historial: {ORIGEN}/{motor} ok={ok}")
 
 
 def resolver_objetivo(cfg: dict, fecha_juego: date) -> Objetivo | None:
@@ -567,6 +594,7 @@ def main() -> int:
                 log(msg)
                 resumen_actions(f"### Sin cupo\n{msg}")
                 notificar(cfg, "Biguá: no se consiguió cancha", msg)
+                registrar_corrida("simple", fecha_juego, False, msg)
                 return 1
 
             log(f"Slot elegido: {elegido['cancha']} a las {elegido['hora']}h — {elegido['texto']}")
@@ -624,6 +652,7 @@ def main() -> int:
                 f"Biguá: {'cancha reservada' if ok else 'reserva sin confirmar'} — {elegido['texto']}",
                 detalle,
             )
+            registrar_corrida("simple", fecha_juego, ok, detalle)
             return 0 if ok else 1
 
         except Exception as exc:
@@ -635,6 +664,7 @@ def main() -> int:
                 pass
             resumen_actions(f"### Error\n```\n{exc}\n```")
             notificar(cfg, "Biguá: el bot falló", f"{exc}\n\n{traceback.format_exc()}")
+            registrar_corrida("simple", fecha_juego, False, f"ERROR: {exc}")
             return 2
         finally:
             video = page.video

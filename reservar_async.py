@@ -334,6 +334,7 @@ async def run() -> int:
         msg = f"No aparecio ningun horario de la lista {obj.horas} para el {fecha_juego} (async, {n} workers)."
         print(msg)
         base.notificar(cfg, "Biguá (async): no se consiguió cancha", msg)
+        base.registrar_corrida("async", fecha_juego, False, msg)
         return 1
 
     r = resultado["data"]
@@ -361,6 +362,7 @@ async def run() -> int:
         f"Biguá (async): {'cancha reservada' if ok else 'reserva sin confirmar'} — {elegido['texto']}",
         detalle,
     )
+    base.registrar_corrida("async", fecha_juego, ok, detalle)
     return 0 if ok else 1
 
 

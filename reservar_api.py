@@ -298,6 +298,7 @@ def main() -> int:
             msg = f"No aparecio ningun horario de la lista {obj.horas} para el {fecha_juego}."
             log(msg)
             base.notificar(cfg, "Biguá (API): no se consiguió cancha", msg)
+            base.registrar_corrida("api", fecha_juego, False, msg)
             return 1
 
         log(f"Slot elegido: {elegido['cancha']} a las {elegido['hora']}h — {elegido['texto']}")
@@ -334,12 +335,14 @@ def main() -> int:
             f"Biguá (API): {'cancha reservada' if ok else 'reserva sin confirmar'} — {elegido['texto']}",
             detalle,
         )
+        base.registrar_corrida("api", fecha_juego, ok, detalle)
         return 0 if ok else 1
 
     except Exception as exc:
         log(f"ERROR: {exc}")
         traceback.print_exc()
         base.notificar(cfg, "Biguá (API): el bot falló", f"{exc}\n\n{traceback.format_exc()}")
+        base.registrar_corrida("api", fecha_juego, False, f"ERROR: {exc}")
         return 2
 
 
