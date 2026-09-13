@@ -28,9 +28,14 @@ function headersBase() {
 
 function cookiesDeRespuesta(r: Response): string {
   const getSetCookie = (r.headers as any).getSetCookie;
-  const crudas: string[] = typeof getSetCookie === "function"
-    ? getSetCookie.call(r.headers)
-    : (r.headers.get("set-cookie") || "").split(/,(?=[^;]+=[^;]+)/);
+  if (typeof getSetCookie !== "function") {
+    // Runtime viejo sin getSetCookie(): no hay forma confiable de separar
+    // varios Set-Cookie de un solo header ya unido por comas. Mejor no
+    // adivinar mal (romperiamos el valor de la cookie) que devolver algo.
+    console.warn("bigua.ts: Headers.getSetCookie() no disponible en este runtime");
+    return "";
+  }
+  const crudas: string[] = getSetCookie.call(r.headers);
   return crudas.map((c) => c.split(";")[0]).filter(Boolean).join("; ");
 }
 
@@ -87,6 +92,15 @@ export async function listarClases(token: string, userGuid: string, cookies: str
     Cookie: cookies,
   };
   const r = await fetch(`${BASE}/rest/SD_ClasesLibres_Level_Detail_GridClases?${qs}`, { headers });
-  const j = await r.json();
-  return Array.isArray(j) ? j : [];
+  const texto = await r.text();
+  let j: unknown;
+  try {
+    j = JSON.parse(texto);
+  } catch {
+    throw new Error(`Respuesta no-JSON de SD_ClasesLibres (${r.status}): ${texto.slice(0, 300)}`);
+  }
+  if (!Array.isArray(j)) {
+    throw new Error(`SD_ClasesLibres no devolvio una lista (${r.status}): ${JSON.stringify(j).slice(0, 300)}`);
+  }
+  return j;
 }
