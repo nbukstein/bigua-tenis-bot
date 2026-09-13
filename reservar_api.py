@@ -182,10 +182,22 @@ class ClienteBigua:
 
     def listar_clases(self, tz: ZoneInfo, timeout: float = 15) -> list[dict]:
         ahora = datetime.now(tz).strftime("%Y-%m-%dT%H:%M:%S")
+        gxid = 16
+
+        # La app SIEMPRE pega primero al "padre" del panel (mismo gxid) antes
+        # de pedir el grid. Sospecha: sin esto el servidor no tiene contexto
+        # de panel armado y el grid devuelve vacio fuera de la apertura.
+        qs_padre = urllib.parse.urlencode({
+            "Fechahoraactual": ahora, "Reservahabilitada": "true",
+            "Usuarioessocio": "true", "Usuarioguid": self.user_guid, "gxid": gxid,
+        })
+        self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail?{qs_padre}",
+                      self._headers_auth(), None, timeout)
+
         qs = urllib.parse.urlencode({
             "Fechahoraactual": ahora, "Orderedby": 0, "Reservahabilitada": "true",
             "Usuarioessocio": "true", "Usuarioguid": self.user_guid,
-            "start": 0, "count": 10, "gxid": 2,
+            "start": 0, "count": 10, "gxid": gxid,
         })
         r = self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail_GridClases?{qs}",
                           self._headers_auth(), None, timeout)
