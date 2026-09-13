@@ -5,9 +5,15 @@ import { useEffect, useState } from "react";
 const HORAS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
-function manana() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
+function fechaPorDefecto() {
+  const ahora = new Date();
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Montevideo",
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hour12: false,
+  }).formatToParts(ahora);
+  const val = (t: string) => partes.find((p) => p.type === t)!.value;
+  const d = new Date(`${val("year")}-${val("month")}-${val("day")}T00:00:00`);
+  if (Number(val("hour")) >= 21) d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -37,12 +43,12 @@ export default function Panel() {
   const [pass, setPass] = useState("");
   const [cfg, setCfg] = useState<any>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[]>([]);
-  const [fecha, setFecha] = useState(manana());
+  const [fecha, setFecha] = useState(fechaPorDefecto());
   const [horas, setHoras] = useState<number[]>([]);
   const [ci, setCi] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "mal"; txt: string } | null>(null);
-  const [fechaBuscar, setFechaBuscar] = useState(manana());
+  const [fechaBuscar, setFechaBuscar] = useState(fechaPorDefecto());
   const [canchas, setCanchas] = useState<any[] | null>(null);
   const [buscando, setBuscando] = useState(false);
 
@@ -236,7 +242,7 @@ export default function Panel() {
 
       <div className="card">
         <h2>Configurar ahora</h2>
-        <input type="date" value={fecha} min={manana()} onChange={(e) => setFecha(e.target.value)} />
+        <input type="date" value={fecha} min={fechaPorDefecto()} onChange={(e) => setFecha(e.target.value)} />
         <div className="sub" style={{ marginBottom: 12 }}>
           Para jugar el <strong>{etiquetaFecha(fecha)}</strong> — se reserva a las 21:00 del día anterior.
           {hayOverride ? " Hay un horario puntual guardado para este día." : " Usando el horario habitual."}
