@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const { token, userGuid, cookies, deviceId } = await loginBigua(documento, password, tipoDoc);
+    const { token, userGuid, cookies, deviceId, cookiesDelLogin } = await loginBigua(documento, password, tipoDoc);
     const crudo = await listarClases(token, userGuid, cookies, deviceId);
     const canchas = fecha ? crudo.filter((c: any) => c.ClaseFecha === fecha) : crudo;
 
@@ -33,7 +33,9 @@ export async function GET(req: Request) {
         fechahoraactualEnviada: ahoraMontevideo(),
         totalSinFiltrar: crudo.length,
         fechasEncontradas: [...new Set(crudo.map((c: any) => c.ClaseFecha))],
-        cookiesObtenidas: cookies.length > 0,
+        userGuid,
+        cookiesEnviadas: cookies,
+        cookiesRealesDelLogin: cookiesDelLogin || "(vacio — no llego ningun Set-Cookie del login)",
       },
     });
   } catch (e: any) {

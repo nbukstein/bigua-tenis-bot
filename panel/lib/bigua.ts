@@ -70,6 +70,7 @@ export async function loginBigua(documento: string, password: string, tipoDoc = 
     userGuid: j.user_guid as string,
     cookies: [`GX_CLIENT_ID=${gxClientId}`, cookiesLogin].filter(Boolean).join("; "),
     deviceId,
+    cookiesDelLogin: cookiesLogin, // solo para diagnostico: "" si no llego ningun Set-Cookie real
   };
 }
 
