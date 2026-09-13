@@ -176,7 +176,7 @@ class ClienteBigua:
         qs = urllib.parse.urlencode({
             "Fechahoraactual": ahora, "Orderedby": 0, "Reservahabilitada": "true",
             "Usuarioessocio": "true", "Usuarioguid": self.user_guid,
-            "start": 0, "count": 100, "gxid": 2,
+            "start": 0, "count": 10, "gxid": 2,
         })
         r = self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail_GridClases?{qs}",
                           self._headers_auth(), None, timeout)
