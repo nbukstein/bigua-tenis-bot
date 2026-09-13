@@ -301,8 +301,8 @@ export default function Panel() {
             )}
             {canchas.map((c: any, i: number) => (
               <div className="corrida" key={i}>
-                <span>{c.ClaseNombre} — {c.Clasefechahorastr}</span>
-                <span>{c.Clasecuposstr}</span>
+                <span>{c.cancha} — {c.hora}:00</span>
+                <span>{c.texto}</span>
               </div>
             ))}
           </div>

@@ -1,0 +1,14 @@
+[Unit]
+Description=Bigua - servidor de busqueda de canchas para el panel
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/bigua-tenis-bot
+EnvironmentFile=/root/bigua-tenis-bot/.env
+ExecStart=/root/bigua-tenis-bot/.venv/bin/python /root/bigua-tenis-bot/scripts/servidor_busqueda.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
