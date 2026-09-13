@@ -164,6 +164,15 @@ class ClienteBigua:
         # fuera del pico de trafico de las 21:00.
         self._llamar("GET", f"{BASE}/oauth/userinfo", self._headers_auth(), None, timeout=15)
 
+        # Idem para SDGetActiveSessionUser: la app la pega antes de listar
+        # clases. Probando si esto es lo que "activa" la sesion del lado
+        # del servidor para consultas fuera del pico de las 21:00.
+        cuerpo_sesion = json.dumps({
+            "ClientInformationId": self.device_id, "UsuarioGUID": self.user_guid,
+        }).encode("utf-8")
+        self._llamar("POST", f"{BASE}/rest/Backoffice/SDGetActiveSessionUser",
+                      self._headers_auth(), cuerpo_sesion, timeout=15)
+
     def _headers_auth(self) -> dict:
         return _headers_base() | {
             "Content-Type": "application/json",
