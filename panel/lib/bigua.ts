@@ -40,7 +40,7 @@ function cookiesDeRespuesta(r: Response): string {
 }
 
 // Uruguay no tiene horario de verano: offset fijo -03.
-function ahoraMontevideo(): string {
+export function ahoraMontevideo(): string {
   return new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 19);
 }
 

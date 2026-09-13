@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { autenticado } from "@/lib/auth";
-import { loginBigua, listarClases } from "@/lib/bigua";
+import { loginBigua, listarClases, ahoraMontevideo } from "@/lib/bigua";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,16 @@ export async function GET(req: Request) {
     const crudo = await listarClases(token, userGuid, cookies, deviceId);
     const canchas = fecha ? crudo.filter((c: any) => c.ClaseFecha === fecha) : crudo;
 
-    return NextResponse.json({ canchas });
+    return NextResponse.json({
+      canchas,
+      _debug: {
+        fechaBuscada: fecha,
+        fechahoraactualEnviada: ahoraMontevideo(),
+        totalSinFiltrar: crudo.length,
+        fechasEncontradas: [...new Set(crudo.map((c: any) => c.ClaseFecha))],
+        cookiesObtenidas: cookies.length > 0,
+      },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
