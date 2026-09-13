@@ -33,7 +33,7 @@ import reservar as base
 import reservar_api as api
 
 SECRETO = os.environ["BUSQUEDA_SECRETO"]
-PUERTO = int(os.getenv("BUSQUEDA_PUERTO", "8811"))
+PUERTO = int(os.getenv("BUSQUEDA_PUERTO", "80"))
 
 
 class Handler(BaseHTTPRequestHandler):
