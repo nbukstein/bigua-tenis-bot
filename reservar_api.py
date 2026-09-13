@@ -103,17 +103,34 @@ class ClienteBigua:
         self.user_guid = None
         self.capturar = capturar
 
+    def _cookies_actuales(self) -> str:
+        return "; ".join(f"{c.name}={c.value}" for c in self.cj)
+
     def _llamar(self, method: str, url: str, headers: dict, cuerpo: bytes | None, timeout: float) -> dict:
         req = urllib.request.Request(url, data=cuerpo, headers=headers, method=method)
+        if self.capturar:
+            partes = [f"curl -X {method} '{url}'"]
+            for k, v in headers.items():
+                partes.append(f"-H '{k}: {v}'")
+            cookies = self._cookies_actuales()
+            if cookies:
+                partes.append(f"--cookie '{cookies}'")
+            if cuerpo:
+                partes.append(f"--data-raw '{cuerpo.decode('utf-8', errors='replace')}'")
+            log("-> " + " \\\n     ".join(partes))
         try:
             with self.opener.open(req, timeout=timeout) as resp:
                 texto = resp.read().decode("utf-8")
                 status = resp.status
+                resp_headers = dict(resp.headers)
         except urllib.error.HTTPError as exc:
             texto = exc.read().decode("utf-8", errors="replace")
             status = exc.code
+            resp_headers = dict(exc.headers)
         if self.capturar:
-            log(f"  <- {status} {url.split('?')[0]}: {texto[:300]}")
+            log(f"<- {status} {url}")
+            log(f"   headers respuesta: {resp_headers}")
+            log(f"   body respuesta: {texto[:2000]}")
         if not texto:
             return {}
         try:
