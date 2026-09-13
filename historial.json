@@ -6,5 +6,13 @@
     "objetivo_fecha": "2026-09-13",
     "ok": false,
     "detalle": "No aparecio ningun horario de la lista [8, 9, 10, 11] para el 2026-09-13."
+  },
+  {
+    "fecha": "2026-09-13T04:38:09",
+    "origen": "vps-uruguay",
+    "motor": "api",
+    "objetivo_fecha": "2026-09-13",
+    "ok": false,
+    "detalle": "No aparecio ningun horario de la lista [19] para el 2026-09-13."
   }
 ]
