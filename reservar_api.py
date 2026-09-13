@@ -157,6 +157,13 @@ class ClienteBigua:
         self.token = r["access_token"]
         self.user_guid = r["user_guid"]
 
+        # La app siempre pega a userinfo justo despues del login, antes de
+        # cualquier otra llamada. Sospecha: puede que esto sea lo que
+        # "activa" la sesion del lado del servidor (mas alla del token en
+        # si), y sin este paso las consultas de canchas devuelven vacio
+        # fuera del pico de trafico de las 21:00.
+        self._llamar("GET", f"{BASE}/oauth/userinfo", self._headers_auth(), None, timeout=15)
+
     def _headers_auth(self) -> dict:
         return _headers_base() | {
             "Content-Type": "application/json",
