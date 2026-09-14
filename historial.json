@@ -54,5 +54,13 @@
     "objetivo_fecha": "2026-09-14",
     "ok": false,
     "detalle": "No aparecio ningun horario de la lista [8, 9, 10] para el 2026-09-14."
+  },
+  {
+    "fecha": "2026-09-13T22:05:21",
+    "origen": "192.168.1.19",
+    "motor": "api",
+    "objetivo_fecha": "2026-09-14",
+    "ok": true,
+    "detalle": "Cancha: Cancha 3\nCuando: Cancha 3 14/09/26 - 09:00 a 10:00 2 Cupos\nInvitado (C.I.): 32873613\nReservaOk: True\n\nRecorda que el socio invitado tiene 30 minutos para aceptar la invitacion desde su agenda, o la reserva se cae."
   }
 ]
