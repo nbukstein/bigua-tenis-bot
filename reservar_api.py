@@ -35,7 +35,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import reservar as base  # solo funciones puras (no tocan un navegador)
@@ -181,7 +181,10 @@ class ClienteBigua:
         }
 
     def listar_clases(self, tz: ZoneInfo, timeout: float = 15) -> list[dict]:
-        ahora = datetime.now(tz).strftime("%Y-%m-%dT%H:%M:%S")
+        # La app manda Fechahoraactual en UTC (no en la hora local de
+        # Montevideo, a pesar del header GxTZOffset). Mandarlo en hora local
+        # hacia que el server devolviera vacio fuera de la ventana de hoy.
+        ahora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
         gxid = 16
 
         # La app SIEMPRE pega primero al "padre" del panel (mismo gxid) antes
