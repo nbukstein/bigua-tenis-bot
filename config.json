@@ -1,5 +1,5 @@
 {
-  "activo": false,
+  "activo": true,
   "_comentario_motor": "'simple' = reservar.py (un intento). 'paralelo' = reservar_paralelo.py, experimental: N procesos en paralelo, el primero que encuentra el horario reserva.",
   "motor": "api",
   "paralelo_n": 3,
@@ -28,21 +28,5 @@
     }
   },
   "_comentario_override": "Pisa al default_semanal para una fecha puntual (la fecha en que se JUEGA, formato YYYY-MM-DD). Se borra solo cuando pasa.",
-  "override": {
-    "2026-09-16": {
-      "horas": [
-        8,
-        9,
-        10
-      ],
-      "ci_invitado": "32873613"
-    },
-    "2026-09-17": {
-      "horas": [
-        8,
-        9
-      ],
-      "ci_invitado": "32873613"
-    }
-  }
+  "override": {}
 }
