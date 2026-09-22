@@ -6,7 +6,7 @@
   "tz": "America/Montevideo",
   "apertura": "21:00",
   "ci_invitado_default": "32873613",
-  "canchas_preferidas": [],
+  "canchas_preferidas": ["Cancha 3", "Cancha 4"],
   "notificar_a": [
     "Lempertbrian@outlook.com"
   ],

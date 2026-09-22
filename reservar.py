@@ -245,17 +245,24 @@ def leer_slots(page: Page) -> list[dict]:
 
 
 def elegir_slot(slots: list[dict], obj: Objetivo) -> dict | None:
-    """Primer slot que matchee, respetando el orden de preferencia de horas."""
+    """Primer slot que matchee, respetando el orden de preferencia de horas.
+
+    Dentro de cada hora, prioriza las canchas de obj.canchas (en el orden
+    en que aparecen los slots, no hay prioridad entre ellas); si ninguna
+    esta libre a esa hora, cae a cualquier otra cancha de esa misma hora
+    antes de pasar a la siguiente hora preferida.
+    """
     candidatos = [s for s in slots if s["fecha"] == obj.fecha]
 
-    if obj.canchas:
-        pref = [s for s in candidatos if s["cancha"] in obj.canchas]
-        candidatos = pref or candidatos  # si la cancha preferida no esta, no nos plantamos
-
     for hora in obj.horas:
-        for s in candidatos:
-            if s["hora"] == hora:
-                return s
+        en_hora = [s for s in candidatos if s["hora"] == hora]
+        if not en_hora:
+            continue
+        if obj.canchas:
+            preferidas = [s for s in en_hora if s["cancha"] in obj.canchas]
+            if preferidas:
+                return preferidas[0]
+        return en_hora[0]
     return None
 
 
