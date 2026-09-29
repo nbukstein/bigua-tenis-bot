@@ -110,5 +110,13 @@
     "objetivo_fecha": "2026-09-28",
     "ok": false,
     "detalle": "No aparecio ningun horario de la lista [14] para el 2026-09-28."
+  },
+  {
+    "fecha": "2026-09-29T15:42:09",
+    "origen": "mac",
+    "motor": "api",
+    "objetivo_fecha": "2026-09-30",
+    "ok": false,
+    "detalle": "No aparecio ningun horario de la lista [8] para el 2026-09-30."
   }
 ]
