@@ -102,6 +102,7 @@ class ClienteBigua:
         self.token = None
         self.user_guid = None
         self.capturar = capturar
+        self.ultimos_headers: dict = {}
 
     def _cookies_actuales(self) -> str:
         return "; ".join(f"{c.name}={c.value}" for c in self.cj)
@@ -131,6 +132,7 @@ class ClienteBigua:
             log(f"<- {status} {url}")
             log(f"   headers respuesta: {resp_headers}")
             log(f"   body respuesta: {texto[:2000]}")
+        self.ultimos_headers = resp_headers
         if not texto:
             return {}
         try:
@@ -197,14 +199,26 @@ class ClienteBigua:
         self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail?{qs_padre}",
                       self._headers_auth(), None, timeout)
 
-        qs = urllib.parse.urlencode({
-            "Fechahoraactual": ahora, "Orderedby": 0, "Reservahabilitada": "true",
-            "Usuarioessocio": "true", "Usuarioguid": self.user_guid,
-            "start": 0, "count": 10, "gxid": gxid,
-        })
-        r = self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail_GridClases?{qs}",
-                          self._headers_auth(), None, timeout)
-        return r if isinstance(r, list) else []
+        # El servidor pagina (HasNextPage en el header): con count=10 y solo
+        # una pagina nos podiamos quedar sin ver horarios que estaban mas
+        # atras en la lista. Pedimos paginas hasta que no queden mas.
+        registros: list[dict] = []
+        start = 0
+        count = 10
+        while True:
+            qs = urllib.parse.urlencode({
+                "Fechahoraactual": ahora, "Orderedby": 0, "Reservahabilitada": "true",
+                "Usuarioessocio": "true", "Usuarioguid": self.user_guid,
+                "start": start, "count": count, "gxid": gxid,
+            })
+            r = self._llamar("GET", f"{BASE}/rest/SD_ClasesLibres_Level_Detail_GridClases?{qs}",
+                              self._headers_auth(), None, timeout)
+            pagina = r if isinstance(r, list) else []
+            registros.extend(pagina)
+            if self.ultimos_headers.get("HasNextPage") != "true" or not pagina:
+                break
+            start += count
+        return registros
 
     def pre_reservar(self, clase_id: int, timeout: float = 15) -> None:
         cuerpo = json.dumps({"ClaseId": clase_id, "UsuarioGUID": self.user_guid}).encode("utf-8")
