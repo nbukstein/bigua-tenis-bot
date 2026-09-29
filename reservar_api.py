@@ -359,8 +359,11 @@ def main() -> int:
         if not elegido:
             msg = f"No aparecio ningun horario de la lista {obj.horas} para el {fecha_juego}."
             log(msg)
-            base.notificar(cfg, "Biguá (API): no se consiguió cancha", msg)
-            base.registrar_corrida("api", fecha_juego, False, msg)
+            if args.dry_run:
+                log("DRY RUN: no notifico ni registro la corrida.")
+            else:
+                base.notificar(cfg, "Biguá (API): no se consiguió cancha", msg)
+                base.registrar_corrida("api", fecha_juego, False, msg)
             return 1
 
         log(f"Slot elegido: {elegido['cancha']} a las {elegido['hora']}h — {elegido['texto']}")
