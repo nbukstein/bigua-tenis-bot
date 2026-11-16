@@ -142,5 +142,13 @@
     "objetivo_fecha": "2026-11-01",
     "ok": true,
     "detalle": "Cancha: Cancha 1\nCuando: Cancha 1 01/11/26 - 11:00 a 12:00 2 Cupos\nInvitado (C.I.): 42198287\nReservaOk: True\n\nRecorda que el socio invitado tiene 30 minutos para aceptar la invitacion desde su agenda, o la reserva se cae."
+  },
+  {
+    "fecha": "2026-11-16T00:00:27",
+    "origen": "vps-uruguay",
+    "motor": "api",
+    "objetivo_fecha": "2026-11-16",
+    "ok": true,
+    "detalle": "Cancha: Cancha 4\nCuando: Cancha 4 16/11/26 - 09:00 a 10:00 2 Cupos\nInvitado (C.I.): 39520742\nReservaOk: True\n\nRecorda que el socio invitado tiene 30 minutos para aceptar la invitacion desde su agenda, o la reserva se cae."
   }
 ]
